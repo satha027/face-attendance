@@ -1,0 +1,67 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}Class Skipper Violations - HoD Portal{% endblock %}
+
+{% block hod_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Class Skipper Disciplinary Registry</h1>
+            <p class="page-subtitle">Department records of unauthorized classroom absences and campus roaming incidents.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{{ url_for('hod_roaming_images') }}" class="btn btn-secondary">
+                📷 Photographic Proofs
+            </a>
+            <a href="{{ url_for('hod_send_sms') }}" class="btn btn-primary">
+                💬 Parent Alert Dispatch
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Semester</th>
+                        <th>Incident Time</th>
+                        <th>Location</th>
+                        <th>Violation Reason</th>
+                        <th>Alert Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sk in skippers_list %}
+                    <tr>
+                        <td><strong>{{ sk.regno }}</strong></td>
+                        <td>{{ sk.name }}</td>
+                        <td>{{ sk.sem }}</td>
+                        <td>{{ sk.date }} at {{ sk.time }}</td>
+                        <td><code>{{ sk.location }}</code></td>
+                        <td><span style="color: #dc2626; font-weight: 500;">{{ sk.reason }}</span></td>
+                        <td>
+                            {% if sk.parent_notified %}
+                                <span class="badge badge-success">✓ Parent Notified</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pending Alert</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('hod_send_sms', regno=sk.regno) }}" class="btn btn-primary btn-sm">
+                                💬 Send SMS
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">No department class skipper violations found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

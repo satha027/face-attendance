@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-container">
+    <!-- HoD Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);">HoD Portal</h3>
+            <span class="sidebar-role-badge" style="background: #f3e8ff; color: #7e22ce;">Head of Department</span>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ url_for('hod_dashboard') }}" class="sidebar-item {{ 'active' if active_page == 'dashboard' else '' }}">
+                    <span>📊</span> HoD Home
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('hod_timetable') }}" class="sidebar-item {{ 'active' if active_page == 'timetable' else '' }}">
+                    <span>🗓</span> Dept Timetable
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('hod_attendance') }}" class="sidebar-item {{ 'active' if active_page == 'attendance' else '' }}">
+                    <span>📋</span> Dept Attendance
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('hod_skippers') }}" class="sidebar-item {{ 'active' if active_page == 'skippers' else '' }}">
+                    <span>🚨</span> Class Skipper Details
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('hod_roaming_images') }}" class="sidebar-item {{ 'active' if active_page == 'roaming_images' else '' }}">
+                    <span>📷</span> Roaming Students
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('hod_send_sms') }}" class="sidebar-item {{ 'active' if active_page == 'send_sms' else '' }}">
+                    <span>💬</span> Send SMS to Parents
+                </a>
+            </li>
+        </ul>
+
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <a href="{{ url_for('monitoring_view') }}" class="btn btn-outline-primary btn-sm" style="width: 100%;">
+                Live Surveillance
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        {% block hod_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

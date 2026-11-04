@@ -1,0 +1,120 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Admin Dashboard - Class Skipper{% endblock %}
+
+{% block admin_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">College Admin Dashboard</h1>
+            <p class="page-subtitle">Centralized oversight for departments, attendance automation, and campus security.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{{ url_for('admin_enroll_face') }}" class="btn btn-primary">
+                + Enroll Student Face
+            </a>
+            <a href="{{ url_for('monitoring_view') }}" class="btn btn-secondary">
+                Live Camera Feed
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Widgets -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">🎓</div>
+            <div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Registered Students</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon success">👨‍🏫</div>
+            <div>
+                <div class="stat-value">{{ total_staff }}</div>
+                <div class="stat-label">Faculty Staff</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">🏛</div>
+            <div>
+                <div class="stat-value">{{ total_departments }}</div>
+                <div class="stat-label">Departments</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon danger">⚠</div>
+            <div>
+                <div class="stat-value">{{ today_violations }}</div>
+                <div class="stat-label">Today's Class Skippers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Management Action Cards -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Today's Attendance Overview -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Recent Face Attendance Logs</h3>
+                <a href="{{ url_for('admin_attendance') }}" class="btn btn-secondary btn-sm">View All &rarr;</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Reg No</th>
+                            <th>Student Name</th>
+                            <th>Dept</th>
+                            <th>Time</th>
+                            <th>Accuracy</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in recent_attendance %}
+                        <tr>
+                            <td><strong>{{ att.regno }}</strong></td>
+                            <td>{{ att.name }}</td>
+                            <td>{{ att.dept }}</td>
+                            <td>{{ att.time }}</td>
+                            <td><span class="badge badge-primary">{{ att.confidence }}%</span></td>
+                            <td><span class="badge badge-success">Present</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No attendance records logged today yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Campus Violation Alerts -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Skipper Violations</h3>
+                <span class="badge badge-danger">High Priority</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for viol in recent_violations %}
+                <div style="padding: 0.75rem; border: 1px solid var(--danger-border); background: var(--danger-light); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 0.9rem; color: #b91c1c;">{{ viol.name }} ({{ viol.regno }})</strong>
+                        <span style="font-size: 0.75rem; color: #7f1d1d;">{{ viol.time }}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #991b1b; margin-top: 0.25rem;">
+                        {{ viol.location }} - {{ viol.reason }}
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                    No class skipper violations recorded today.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

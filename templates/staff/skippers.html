@@ -1,0 +1,58 @@
+{% extends 'staff/layout.html' %}
+
+{% block title %}Class Skipper Details - Staff Portal{% endblock %}
+
+{% block staff_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Class Skipper Violation Log</h1>
+            <p class="page-subtitle">Detailed incident log of students missing from assigned classrooms and identified in campus corridors.</p>
+        </div>
+        <a href="{{ url_for('staff_roaming_images') }}" class="btn btn-secondary">
+            📷 View Roaming Photo Proofs
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Dept / Sem</th>
+                        <th>Incident Time</th>
+                        <th>Violation Location</th>
+                        <th>Reason / Activity</th>
+                        <th>Status</th>
+                        <th>Parent Notified</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sk in skippers_list %}
+                    <tr>
+                        <td><strong>{{ sk.regno }}</strong></td>
+                        <td>{{ sk.name }}</td>
+                        <td><span class="badge badge-primary">{{ sk.dept }}</span> {{ sk.sem }}</td>
+                        <td>{{ sk.date }} at {{ sk.time }}</td>
+                        <td><code>{{ sk.location }}</code></td>
+                        <td><span style="color: #b91c1c; font-weight: 500;">{{ sk.reason }}</span></td>
+                        <td><span class="badge badge-danger">{{ sk.status }}</span></td>
+                        <td>
+                            {% if sk.parent_notified %}
+                                <span class="badge badge-success">✓ SMS Sent</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">No class skipper incidents recorded.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

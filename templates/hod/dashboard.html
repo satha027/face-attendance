@@ -1,0 +1,123 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}HoD Dashboard - Class Skipper{% endblock %}
+
+{% block hod_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Head of Department Dashboard</h1>
+            <p class="page-subtitle">Departmental monitoring and disciplinary enforcement for <strong>{{ hod_info.dept }}</strong>.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{{ url_for('hod_send_sms') }}" class="btn btn-primary">
+                💬 Send Parent SMS Notice
+            </a>
+            <a href="{{ url_for('monitoring_view') }}" class="btn btn-secondary">
+                Live Campus Feed
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Widgets -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">🎓</div>
+            <div>
+                <div class="stat-value">{{ dept_students_count }}</div>
+                <div class="stat-label">Students in Department</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon success">✓</div>
+            <div>
+                <div class="stat-value">{{ dept_present_count }}</div>
+                <div class="stat-label">Verified Present Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon danger">⚠</div>
+            <div>
+                <div class="stat-value">{{ dept_skipper_count }}</div>
+                <div class="stat-label">Identified Class Skippers</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">📩</div>
+            <div>
+                <div class="stat-value">{{ alerts_sent_count }}</div>
+                <div class="stat-label">Parent Notifications Sent</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Summary Cards -->
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+        <!-- Live Attendance -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Department Face Attendance Stream</h3>
+                <a href="{{ url_for('hod_attendance') }}" class="btn btn-secondary btn-sm">Full Department Log</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Reg No</th>
+                            <th>Student Name</th>
+                            <th>Timestamp</th>
+                            <th>Accuracy</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in recent_attendance %}
+                        <tr>
+                            <td><strong>{{ att.regno }}</strong></td>
+                            <td>{{ att.name }}</td>
+                            <td>{{ att.time }}</td>
+                            <td><span class="badge badge-primary">{{ att.confidence }}%</span></td>
+                            <td><span class="badge badge-success">Present</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No attendance records recorded today yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Skipper Alerts & Fast Action -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Active Roaming Alerts</h3>
+                <a href="{{ url_for('hod_roaming_images') }}" class="btn btn-danger btn-sm">Photo Evidence</a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for viol in recent_violations %}
+                <div style="padding: 0.75rem; background: var(--danger-light); border: 1px solid var(--danger-border); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong style="color: #b91c1c;">{{ viol.name }} ({{ viol.regno }})</strong>
+                        <span style="font-size: 0.75rem; color: #7f1d1d;">{{ viol.time }}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #991b1b; margin: 0.25rem 0;">
+                        {{ viol.location }} - {{ viol.reason }}
+                    </div>
+                    <div style="margin-top: 0.5rem; display: flex; justify-content: flex-end;">
+                        <a href="{{ url_for('hod_send_sms', regno=viol.regno) }}" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            💬 SMS Parent
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+                    No department class skippers flagged.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

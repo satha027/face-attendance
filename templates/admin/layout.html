@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Admin Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Admin Console</h3>
+            <span class="sidebar-role-badge">Super Admin</span>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-item {{ 'active' if active_page == 'dashboard' else '' }}">
+                    <span>📊</span> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_departments') }}" class="sidebar-item {{ 'active' if active_page == 'departments' else '' }}">
+                    <span>🏛</span> Departments
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_semesters') }}" class="sidebar-item {{ 'active' if active_page == 'semesters' else '' }}">
+                    <span>📅</span> Semesters
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_syllabus') }}" class="sidebar-item {{ 'active' if active_page == 'syllabus' else '' }}">
+                    <span>📚</span> Syllabus
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_students') }}" class="sidebar-item {{ 'active' if active_page == 'students' else '' }}">
+                    <span>🎓</span> Students
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_enroll_face') }}" class="sidebar-item {{ 'active' if active_page == 'enroll_face' else '' }}">
+                    <span>📷</span> Enroll Face
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_staff') }}" class="sidebar-item {{ 'active' if active_page == 'staff' else '' }}">
+                    <span>👨‍🏫</span> Staff
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_credentials') }}" class="sidebar-item {{ 'active' if active_page == 'credentials' else '' }}">
+                    <span>🔑</span> Credentials
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_timetable') }}" class="sidebar-item {{ 'active' if active_page == 'timetable' else '' }}">
+                    <span>🗓</span> Timetable
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_attendance') }}" class="sidebar-item {{ 'active' if active_page == 'attendance' else '' }}">
+                    <span>📋</span> Attendance
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_reports') }}" class="sidebar-item {{ 'active' if active_page == 'reports' else '' }}">
+                    <span>📈</span> Reports & Excel
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_notifications') }}" class="sidebar-item {{ 'active' if active_page == 'notifications' else '' }}">
+                    <span>💬</span> Notifications
+                </a>
+            </li>
+        </ul>
+
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <a href="{{ url_for('monitoring_view') }}" class="btn btn-outline-primary btn-sm" style="width: 100%;">
+                Live Surveillance
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

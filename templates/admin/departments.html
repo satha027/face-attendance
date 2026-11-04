@@ -1,0 +1,69 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Department Management - Admin{% endblock %}
+
+{% block admin_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Department Management</h1>
+            <p class="page-subtitle">Add and organize academic departments within the institution.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+        <!-- Add Department Form -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Add New Department</h3>
+            <form method="POST" action="{{ url_for('admin_departments') }}">
+                <div class="form-group">
+                    <label class="form-label">Department Name</label>
+                    <input type="text" name="dept_name" class="form-control" placeholder="e.g. Computer Science and Engineering" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department Code</label>
+                    <input type="text" name="code" class="form-control" placeholder="e.g. CSE" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Save Department
+                </button>
+            </form>
+        </div>
+
+        <!-- Existing Departments List -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Existing Departments</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Department Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td>{{ dept.id }}</td>
+                            <td><span class="badge badge-primary">{{ dept.code }}</span></td>
+                            <td><strong>{{ dept.dept_name }}</strong></td>
+                            <td>
+                                <a href="{{ url_for('admin_delete_department', id=dept.id) }}" 
+                                   class="btn btn-danger btn-sm" 
+                                   onclick="return confirm('Are you sure you want to remove this department?');">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No departments found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

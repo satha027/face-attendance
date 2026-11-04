@@ -1,0 +1,45 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}Department Timetable - HoD Portal{% endblock %}
+
+{% block hod_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ hod_info.dept }} Department Timetable</h1>
+            <p class="page-subtitle">Master schedule of lecture periods and faculty allocations for the department.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Period & Time</th>
+                        <th>Semester</th>
+                        <th>Subject Title</th>
+                        <th>Assigned Faculty</th>
+                        <th>Room</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tt in dept_timetable %}
+                    <tr>
+                        <td><strong>{{ tt.day_name }}</strong></td>
+                        <td>{{ tt.period }} ({{ tt.start_time }} - {{ tt.end_time }})</td>
+                        <td><span class="badge badge-primary">{{ tt.sem }}</span></td>
+                        <td><strong>{{ tt.subject }}</strong></td>
+                        <td>{{ tt.staff_name }}</td>
+                        <td><code>{{ tt.room }}</code></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No timetable records for your department.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

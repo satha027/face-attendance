@@ -1,0 +1,98 @@
+{% extends 'staff/layout.html' %}
+
+{% block title %}Staff Home - Class Skipper{% endblock %}
+
+{% block staff_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Faculty Staff Dashboard</h1>
+            <p class="page-subtitle">Welcome back, <strong>{{ staff_info.name }}</strong> ({{ staff_info.dept }} Department).</p>
+        </div>
+        <a href="{{ url_for('monitoring_view') }}" class="btn btn-primary">
+            Launch Live Classroom Feed
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">📅</div>
+            <div>
+                <div class="stat-value">{{ assigned_classes_count }}</div>
+                <div class="stat-label">Assigned Weekly Lectures</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon success">✓</div>
+            <div>
+                <div class="stat-value">{{ present_count }}</div>
+                <div class="stat-label">Students Present Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon danger">⚠</div>
+            <div>
+                <div class="stat-value">{{ skipper_count }}</div>
+                <div class="stat-label">Detected Class Skippers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Sections -->
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+        <!-- Today's Schedule -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">My Teaching Schedule</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Period</th>
+                            <th>Subject</th>
+                            <th>Hall</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tt in my_timetable %}
+                        <tr>
+                            <td><strong>{{ tt.day_name }}</strong></td>
+                            <td>{{ tt.period }} ({{ tt.start_time }})</td>
+                            <td>{{ tt.subject }}</td>
+                            <td><code>{{ tt.room }}</code></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No scheduled periods for your profile.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Skippers Warning -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">Absentee / Skipper Alerts</h3>
+                <a href="{{ url_for('staff_skippers') }}" class="btn btn-secondary btn-sm">Full Report</a>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                {% for sk in my_skippers %}
+                <div style="padding: 0.75rem; background: var(--danger-light); border: 1px solid var(--danger-border); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong style="color: #991b1b;">{{ sk.name }} ({{ sk.regno }})</strong>
+                        <span style="font-size: 0.75rem; color: #b91c1c;">{{ sk.time }}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #7f1d1d; margin-top: 0.2rem;">
+                        {{ sk.location }} - {{ sk.reason }}
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">No active class skipper alerts today.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

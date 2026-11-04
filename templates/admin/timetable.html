@@ -1,0 +1,138 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Timetable Management - Admin{% endblock %}
+
+{% block admin_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Timetable & Schedule Management</h1>
+            <p class="page-subtitle">Organize daily lecture hours, classroom numbers, and faculty assignments.</p>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('add-tt-modal').style.display='flex'">
+            + Add Class Schedule Slot
+        </button>
+    </div>
+
+    <!-- Timetable List Table -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Scheduled Academic Periods</h3>
+            <span class="badge badge-primary">Surveillance Synced</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Period & Time</th>
+                        <th>Dept / Sem</th>
+                        <th>Subject Title</th>
+                        <th>Assigned Staff</th>
+                        <th>Room</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tt in timetable_list %}
+                    <tr>
+                        <td><strong>{{ tt.day_name }}</strong></td>
+                        <td>
+                            <div style="font-weight: 600;">{{ tt.period }}</div>
+                            <small style="color: var(--text-muted);">{{ tt.start_time }} - {{ tt.end_time }}</small>
+                        </td>
+                        <td>
+                            <span class="badge badge-primary">{{ tt.dept }}</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">{{ tt.sem }}</span>
+                        </td>
+                        <td><strong>{{ tt.subject }}</strong></td>
+                        <td>{{ tt.staff_name }}</td>
+                        <td><code>{{ tt.room }}</code></td>
+                        <td>
+                            <a href="{{ url_for('admin_delete_timetable', id=tt.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Remove slot?');">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No timetable periods configured yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Slot -->
+<div id="add-tt-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div class="card" style="width: 100%; max-width: 600px; padding: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.35rem; font-weight: 800;">Add Timetable Period</h3>
+            <button onclick="document.getElementById('add-tt-modal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_timetable') }}">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Day of Week</label>
+                    <select name="day_name" class="form-control" required>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                        <option value="Saturday">Saturday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Period Name</label>
+                    <input type="text" name="period" class="form-control" placeholder="e.g. Period 1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="text" name="start_time" class="form-control" placeholder="09:00 AM" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Time</label>
+                    <input type="text" name="end_time" class="form-control" placeholder="10:00 AM" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select name="dept" class="form-control" required>
+                        {% for d in departments %}
+                            <option value="{{ d.code }}">{{ d.code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Semester</label>
+                    <select name="sem" class="form-control" required>
+                        {% for s in semesters %}
+                            <option value="{{ s.sem_name }}">{{ s.sem_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject Title</label>
+                    <input type="text" name="subject" class="form-control" placeholder="e.g. Artificial Intelligence" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Staff Name</label>
+                    <input type="text" name="staff_name" class="form-control" placeholder="Prof. Rajesh Kumar" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Classroom Hall</label>
+                <input type="text" name="room" class="form-control" value="LH-301" required>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-tt-modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

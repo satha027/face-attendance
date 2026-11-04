@@ -1,0 +1,52 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}Roaming Student Photos - HoD Portal{% endblock %}
+
+{% block hod_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Evidence: Roaming Student Snapshots</h1>
+            <p class="page-subtitle">Automatic surveillance captures documenting department students roaming outside classes.</p>
+        </div>
+        <a href="{{ url_for('hod_send_sms') }}" class="btn btn-primary">
+            💬 Issue Disciplinary SMS to Parents
+        </a>
+    </div>
+
+    <!-- Gallery -->
+    <div class="roaming-gallery">
+        {% for v in roaming_images %}
+        <div class="roaming-card">
+            <div class="roaming-img-wrap">
+                <img src="/{{ v.image_path }}" class="roaming-img" alt="Violation snapshot" onerror="this.src='/static/violations/demo_violation_1.jpg'">
+                <div style="position: absolute; top: 10px; right: 10px;">
+                    <span class="badge badge-danger">Class Skipper</span>
+                </div>
+            </div>
+            <div class="roaming-details">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h4 style="font-weight: 700; font-size: 1rem;">{{ v.name }}</h4>
+                    <span class="badge badge-primary">{{ v.regno }}</span>
+                </div>
+                <div style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.5;">
+                    <div>📍 Location: <strong>{{ v.location }}</strong></div>
+                    <div>🕒 Time: <strong>{{ v.date }} at {{ v.time }}</strong></div>
+                    <div>⚠️ Violation: <strong>{{ v.reason }}</strong></div>
+                </div>
+                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <a href="{{ url_for('hod_send_sms', regno=v.regno) }}" class="btn btn-primary btn-sm">
+                        SMS Parent &rarr;
+                    </a>
+                    <a href="/{{ v.image_path }}" target="_blank" class="btn btn-secondary btn-sm">Full View</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 0;">
+            No campus roaming image captures recorded.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

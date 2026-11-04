@@ -1,0 +1,87 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Syllabus & Course Management - Admin{% endblock %}
+
+{% block admin_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Syllabus & Subjects Management</h1>
+            <p class="page-subtitle">Define subjects and courses assigned to departments and semesters.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+        <!-- Add Subject Form -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Add New Subject</h3>
+            <form method="POST" action="{{ url_for('admin_syllabus') }}">
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select name="dept" class="form-control" required>
+                        {% for d in departments %}
+                            <option value="{{ d.code }}">{{ d.dept_name }} ({{ d.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Semester</label>
+                    <select name="sem" class="form-control" required>
+                        {% for s in semesters %}
+                            <option value="{{ s.sem_name }}">{{ s.sem_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject Code</label>
+                    <input type="text" name="subject_code" class="form-control" placeholder="e.g. CS8601" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject Title</label>
+                    <input type="text" name="subject_name" class="form-control" placeholder="e.g. Artificial Intelligence & Deep Learning" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Save Subject
+                </button>
+            </form>
+        </div>
+
+        <!-- Subjects List -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem;">Curriculum Subjects</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Dept</th>
+                            <th>Semester</th>
+                            <th>Code</th>
+                            <th>Subject Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in syllabus_list %}
+                        <tr>
+                            <td><span class="badge badge-primary">{{ sub.dept }}</span></td>
+                            <td>{{ sub.sem }}</td>
+                            <td><code>{{ sub.subject_code }}</code></td>
+                            <td><strong>{{ sub.subject_name }}</strong></td>
+                            <td>
+                                <a href="{{ url_for('admin_delete_syllabus', id=sub.id) }}" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Delete this subject?');">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No syllabus subjects configured yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

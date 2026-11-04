@@ -1,0 +1,68 @@
+{% extends 'staff/layout.html' %}
+
+{% block title %}Student Attendance - Staff Portal{% endblock %}
+
+{% block staff_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Class Student Attendance</h1>
+            <p class="page-subtitle">View attendance marked automatically via the classroom facial recognition camera.</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <form method="GET" action="{{ url_for('staff_attendance') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 180px;">
+                <label class="form-label">Semester</label>
+                <select name="sem" class="form-control">
+                    <option value="All">All Semesters</option>
+                    {% for s in semesters %}
+                        <option value="{{ s.sem_name }}" {% if selected_sem == s.sem_name %}selected{% endif %}>{{ s.sem_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 180px;">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Filter Attendance</button>
+        </form>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Dept / Sem</th>
+                        <th>Timestamp</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attendance_records %}
+                    <tr>
+                        <td><strong>{{ att.regno }}</strong></td>
+                        <td>{{ att.name }}</td>
+                        <td><span class="badge badge-primary">{{ att.dept }}</span> {{ att.sem }}</td>
+                        <td>{{ att.date }} at {{ att.time }}</td>
+                        <td><span class="badge badge-primary">{{ att.confidence }}%</span></td>
+                        <td><span class="badge badge-success">{{ att.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">No attendance records found for selected filters.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

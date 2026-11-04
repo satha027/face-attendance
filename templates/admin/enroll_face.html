@@ -1,0 +1,279 @@
+{% extends 'admin/layout.html' %}
+
+{% block title %}Enroll Student Face - Admin{% endblock %}
+
+{% block admin_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Enroll Student Biometric Face</h1>
+            <p class="page-subtitle">Capture high-resolution face samples using the webcam or upload image files to train the LBPH / FaceNet model.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem;">
+        <!-- Left: Live Webcam Face Capture -->
+        <div class="card">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">1. Live Camera Biometric Capture</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Select Student to Enroll</label>
+                <select id="enroll-student-select" class="form-control" onchange="updateSelectedStudent()">
+                    <option value="">-- Choose Student --</option>
+                    {% for st in students %}
+                        <option value="{{ st.regno }}" {% if selected_regno == st.regno %}selected{% endif %}>
+                            {{ st.name }} ({{ st.regno }}) - {{ st.dept }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Viewport -->
+            <div class="video-frame-container" style="aspect-ratio: 4/3; margin-bottom: 1rem; position: relative; overflow: hidden;">
+                <video id="enroll-video" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="enroll-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
+                <div id="cam-overlay" style="position: absolute; border: 2px dashed #10b981; width: 220px; height: 220px; border-radius: 50%; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 2;">
+                    <span style="background: rgba(16, 185, 129, 0.85); color: #ffffff; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
+                        Position Face In Circle
+                    </span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; justify-content: space-between; align-items: center;">
+                <button type="button" id="btn-start-enroll-cam" class="btn btn-secondary" onclick="initEnrollCam()">
+                    Open Webcam
+                </button>
+                <button type="button" id="btn-capture-batch" class="btn btn-primary" onclick="captureBatchFrames()" disabled>
+                    📸 Capture & Train Face (5 Samples)
+                </button>
+            </div>
+
+            <div id="enroll-progress-bar" style="display: none; margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.35rem;">
+                    <span id="enroll-progress-text">Capturing face samples...</span>
+                    <span id="enroll-count-text">0 / 5</span>
+                </div>
+                <div style="width: 100%; background: var(--bg-card-subtle); height: 8px; border-radius: 9999px; overflow: hidden;">
+                    <div id="enroll-progress-fill" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Upload Face Images or Sample Gallery -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- File Upload Card -->
+            <div class="card">
+                <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem;">2. Upload Face Photo File</h3>
+                <form method="POST" action="{{ url_for('admin_enroll_face_upload') }}" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Student Reg No</label>
+                        <select name="regno" class="form-control" required>
+                            <option value="">-- Choose Student --</option>
+                            {% for st in students %}
+                                <option value="{{ st.regno }}" {% if selected_regno == st.regno %}selected{% endif %}>
+                                    {{ st.name }} ({{ st.regno }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Photo File(s)</label>
+                        <input type="file" name="photos" class="form-control" accept="image/*" multiple required>
+                        <small style="color: var(--text-muted); display: block; margin-top: 0.35rem;">
+                            Accepted: JPEG, PNG. You can select multiple face images for better training accuracy.
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-secondary" style="width: 100%; border-color: var(--primary); color: var(--primary);">
+                        Upload & Retrain Model
+                    </button>
+                </form>
+            </div>
+
+            <!-- Face Dataset Summary & Retrain -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.15rem; font-weight: 700;">Biometric Model Status</h3>
+                    <span class="badge badge-success">LBPH Engine Active</span>
+                </div>
+
+                <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.25rem;">
+                    <div>• Resolution: <strong>220x220 Grayscale Normalization</strong></div>
+                    <div>• Denoising: <strong>Gaussian Blur + Histogram Equalization</strong></div>
+                    <div>• Spatial Grid: <strong>8x8 LBP Histograms (1024 features)</strong></div>
+                    <div>• Enrolled Students: <strong>{{ enrolled_students_count }} students trained</strong></div>
+                </div>
+
+                <form method="POST" action="{{ url_for('admin_retrain_model') }}">
+                    <button type="submit" class="btn btn-outline-primary" style="width: 100%;">
+                        🔄 Re-Index & Retrain All Datasets
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let enrollStream = null;
+let enrollTrackInterval = null;
+const enrollVideo = document.getElementById('enroll-video');
+const enrollOverlay = document.getElementById('enroll-overlay');
+
+async function initEnrollCam() {
+    try {
+        enrollStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480 },
+            audio: false
+        });
+        enrollVideo.srcObject = enrollStream;
+        document.getElementById('btn-start-enroll-cam').innerText = 'Webcam Running';
+        document.getElementById('btn-start-enroll-cam').disabled = true;
+        updateSelectedStudent();
+        startEnrollFaceTracking();
+    } catch (e) {
+        alert("Camera error: " + e.message);
+    }
+}
+
+function startEnrollFaceTracking() {
+    const procCanvas = document.createElement('canvas');
+    procCanvas.width = 640;
+    procCanvas.height = 480;
+    const procCtx = procCanvas.getContext('2d');
+
+    enrollTrackInterval = setInterval(async () => {
+        if (!enrollStream || enrollVideo.readyState !== enrollVideo.HAVE_ENOUGH_DATA) return;
+
+        procCtx.drawImage(enrollVideo, 0, 0, 640, 480);
+        const dataUrl = procCanvas.toDataURL('image/jpeg', 0.8);
+
+        try {
+            const res = await fetch('/api/recognize_frame', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataUrl, mode: 'classroom' })
+            });
+            const data = await res.json();
+            if (data.success && data.detections && data.detections.length > 0) {
+                drawEnrollBoxes(data.detections, data.frame_width || 640, data.frame_height || 480);
+            } else {
+                clearEnrollBox();
+            }
+        } catch (err) {
+            // silent
+        }
+    }, 400);
+}
+
+function drawEnrollBoxes(detections, frameWidth, frameHeight) {
+    if (!enrollOverlay) return;
+    enrollOverlay.width = enrollOverlay.clientWidth;
+    enrollOverlay.height = enrollOverlay.clientHeight;
+    const ctx = enrollOverlay.getContext('2d');
+    ctx.clearRect(0, 0, enrollOverlay.width, enrollOverlay.height);
+
+    const selElem = document.getElementById('enroll-student-select');
+    const selectedText = selElem && selElem.selectedIndex > 0 ? selElem.options[selElem.selectedIndex].text : '';
+    const studentName = selectedText.split('(')[0].trim() || 'Candidate Face';
+
+    const scaleX = enrollOverlay.width / frameWidth;
+    const scaleY = enrollOverlay.height / frameHeight;
+
+    detections.forEach(det => {
+        if (!det.box) return;
+        const x = det.box.x * scaleX;
+        const y = det.box.y * scaleY;
+        const w = det.box.w * scaleX;
+        const h = det.box.h * scaleY;
+
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, w, h);
+
+        const bannerW = Math.max(w, 200);
+        const bannerH = 34;
+        const bannerY = Math.max(4, y - bannerH - 4);
+
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.95)';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x, bannerY, bannerW, bannerH, [6, 6, 6, 6]);
+        else ctx.rect(x, bannerY, bannerW, bannerH);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText(`Target: ${studentName}`, x + 8, bannerY + 16);
+        ctx.font = '600 10.5px sans-serif';
+        ctx.fillText('Biometric Align: Ready to Capture', x + 8, bannerY + 28);
+    });
+}
+
+function clearEnrollBox() {
+    if (enrollOverlay) {
+        const ctx = enrollOverlay.getContext('2d');
+        ctx.clearRect(0, 0, enrollOverlay.width, enrollOverlay.height);
+    }
+}
+
+function updateSelectedStudent() {
+    const sel = document.getElementById('enroll-student-select').value;
+    const btn = document.getElementById('btn-capture-batch');
+    if (sel && enrollStream) {
+        btn.disabled = false;
+    } else {
+        btn.disabled = true;
+    }
+}
+
+async function captureBatchFrames() {
+    const regno = document.getElementById('enroll-student-select').value;
+    if (!regno) {
+        alert("Please select a student first!");
+        return;
+    }
+
+    const pBar = document.getElementById('enroll-progress-bar');
+    const pFill = document.getElementById('enroll-progress-fill');
+    const pCount = document.getElementById('enroll-count-text');
+    pBar.style.display = 'block';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+
+    const frames = [];
+
+    for (let i = 1; i <= 5; i++) {
+        pCount.innerText = `${i} / 5`;
+        pFill.style.width = `${(i / 5) * 100}%`;
+
+        ctx.drawImage(enrollVideo, 0, 0, 640, 480);
+        frames.push(canvas.toDataURL('image/jpeg', 0.85));
+
+        await new Promise(r => setTimeout(r, 450));
+    }
+
+    pCount.innerText = "Training model on server...";
+
+    try {
+        const response = await fetch('/api/enroll_face_frames', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ regno: regno, frames: frames })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert(`Face enrollment successful for Reg No ${regno}! The model has been retrained.`);
+            window.location.reload();
+        } else {
+            alert("Error: " + result.error);
+        }
+    } catch (err) {
+        alert("Network error during enrollment: " + err);
+    }
+}
+</script>
+{% endblock %}

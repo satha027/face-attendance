@@ -1,0 +1,47 @@
+{% extends 'staff/layout.html' %}
+
+{% block title %}My Timetable - Staff Portal{% endblock %}
+
+{% block staff_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Class Timetable</h1>
+            <p class="page-subtitle">Schedule of assigned lectures and classroom venues across the week.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Period</th>
+                        <th>Time Window</th>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>Subject Title</th>
+                        <th>Classroom Room</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tt in my_timetable %}
+                    <tr>
+                        <td><strong>{{ tt.day_name }}</strong></td>
+                        <td>{{ tt.period }}</td>
+                        <td>{{ tt.start_time }} - {{ tt.end_time }}</td>
+                        <td><span class="badge badge-primary">{{ tt.dept }}</span></td>
+                        <td>{{ tt.sem }}</td>
+                        <td><strong>{{ tt.subject }}</strong></td>
+                        <td><code>{{ tt.room }}</code></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No timetable periods assigned to you.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}Send Parent SMS - HoD Portal{% endblock %}
+
+{% block hod_content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Send SMS Alert to Parents</h1>
+            <p class="page-subtitle">Direct SMS dispatch to student guardians regarding classroom absenteeism or roaming violations.</p>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 2rem;">
+        <form method="POST" action="{{ url_for('hod_send_sms') }}">
+            <div class="form-group">
+                <label class="form-label">Select Student</label>
+                <select name="student_id" id="student_id" class="form-control" onchange="autoFillParentDetails()" required>
+                    <option value="">-- Choose Student --</option>
+                    {% for st in dept_students %}
+                        <option value="{{ st.id }}" 
+                                data-regno="{{ st.regno }}" 
+                                data-name="{{ st.name }}" 
+                                data-parent="{{ st.parent_mob }}"
+                                {% if selected_regno == st.regno %}selected{% endif %}>
+                            {{ st.name }} (Reg: {{ st.regno }}) - Parent: {{ st.parent_mob }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Parent Mobile Number</label>
+                <input type="tel" name="parent_mob" id="parent_mob" class="form-control" placeholder="+91 9845012345" required value="{{ default_parent_mob or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">SMS Alert Template</label>
+                <select id="sms_template" class="form-control" onchange="applySmsTemplate()">
+                    <option value="roaming">Campus Roaming & Class Skipper Alert</option>
+                    <option value="absent">Consecutive Lecture Absence Notice</option>
+                    <option value="custom">Custom Message</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">SMS Message Body</label>
+                <textarea name="message" id="sms_body" class="form-control" rows="5" required></textarea>
+                <small style="color: var(--text-muted); display: block; margin-top: 0.35rem;">
+                    Messages are routed through the SMS Gateway API and logged in institutional records.
+                </small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <a href="{{ url_for('hod_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    📲 Dispatch SMS Alert to Parent
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function autoFillParentDetails() {
+    const sel = document.getElementById('student_id');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.parent) {
+        document.getElementById('parent_mob').value = opt.dataset.parent;
+    }
+    applySmsTemplate();
+}
+
+function applySmsTemplate() {
+    const sel = document.getElementById('student_id');
+    const opt = sel.options[sel.selectedIndex];
+    const sName = opt ? opt.dataset.name || 'your ward' : 'your ward';
+    const sReg = opt ? opt.dataset.regno || '' : '';
+    const tmpl = document.getElementById('sms_template').value;
+    const body = document.getElementById('sms_body');
+
+    if (tmpl === 'roaming') {
+        body.value = `Dear Parent, your ward ${sName} (${sReg}) was detected roaming outside the classroom during lecture hours today by our AI surveillance cameras. Please advise them to maintain class discipline. - HoD, {{ hod_info.dept }}`;
+    } else if (tmpl === 'absent') {
+        body.value = `Dear Parent, please be informed that ${sName} (${sReg}) was recorded absent for today's scheduled departmental sessions. Regular attendance is required for exam eligibility. - HoD, {{ hod_info.dept }}`;
+    } else {
+        body.value = `Dear Parent of ${sName} (${sReg}), `;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    autoFillParentDetails();
+});
+</script>
+{% endblock %}

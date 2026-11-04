@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Staff Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Staff Portal</h3>
+            <span class="sidebar-role-badge" style="background: #e0f2fe; color: #0284c7;">Faculty Staff</span>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ url_for('staff_dashboard') }}" class="sidebar-item {{ 'active' if active_page == 'dashboard' else '' }}">
+                    <span>📊</span> Staff Home
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('staff_timetable') }}" class="sidebar-item {{ 'active' if active_page == 'timetable' else '' }}">
+                    <span>🗓</span> My Timetable
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('staff_attendance') }}" class="sidebar-item {{ 'active' if active_page == 'attendance' else '' }}">
+                    <span>📋</span> Student Attendance
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('staff_skippers') }}" class="sidebar-item {{ 'active' if active_page == 'skippers' else '' }}">
+                    <span>🚨</span> Class Skipper Details
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('staff_roaming_images') }}" class="sidebar-item {{ 'active' if active_page == 'roaming_images' else '' }}">
+                    <span>📷</span> Roaming Students
+                </a>
+            </li>
+        </ul>
+
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <a href="{{ url_for('monitoring_view') }}" class="btn btn-outline-primary btn-sm" style="width: 100%;">
+                Live Surveillance
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        {% block staff_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

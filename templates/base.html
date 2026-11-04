@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Class Skipper - AI College Surveillance & Attendance System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <div class="brand-icon">CS</div>
+                <span>Class Skipper</span>
+            </a>
+            
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+                <li><a href="{{ url_for('monitoring_view') }}" class="nav-link" style="color: var(--primary);">Live Monitoring</a></li>
+                
+                {% if session.get('role') == 'admin' %}
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link">Admin Portal</a></li>
+                {% elif session.get('role') == 'staff' %}
+                    <li><a href="{{ url_for('staff_dashboard') }}" class="nav-link">Staff Portal</a></li>
+                {% elif session.get('role') == 'hod' %}
+                    <li><a href="{{ url_for('hod_dashboard') }}" class="nav-link">HoD Portal</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login_view', role='staff') }}" class="nav-link">Staff</a></li>
+                    <li><a href="{{ url_for('login_view', role='hod') }}" class="nav-link">HOD</a></li>
+                    <li><a href="{{ url_for('login_view', role='admin') }}" class="nav-link">Admin</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="nav-actions">
+                {% if session.get('username') %}
+                    <span class="badge badge-primary">
+                        {{ session.get('role')|upper }}: {{ session.get('username') }}
+                    </span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('monitoring_view') }}" class="btn btn-primary btn-sm">Live Surveillance</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div style="flex: 1;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div style="max-width: 1300px; margin: 1rem auto 0; padding: 0 1.5rem;">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div style="max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <strong>Class Skipper</strong> &copy; 2026. AI Based College Surveillance System for Attendance & Class Skipper Detection.
+            </div>
+            <div style="display: flex; gap: 1.5rem; font-size: 0.85rem;">
+                <span>FaceNet & LBPH Engine</span>
+                <span>Faster R-CNN Detection</span>
+                <span>Accuracy: 98.87%</span>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

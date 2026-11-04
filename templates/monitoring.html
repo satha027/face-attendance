@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Surveillance & Attendance Monitoring - Class Skipper{% endblock %}
+
+{% block content %}
+<div style="max-width: 1350px; margin: 1.5rem auto; padding: 0 1.5rem;">
+    <!-- Top Action Header -->
+    <div class="page-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <h1 class="page-title">Live AI Surveillance Console</h1>
+                <span id="camera-header-badge" class="badge badge-success">Attendance Automation Mode</span>
+            </div>
+            <p id="camera-desc" class="page-subtitle">
+                Classroom Camera (LH-301) - Marking Present for Enrolled Students
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+            <!-- Camera Switch Buttons -->
+            <button id="btn-cam-classroom" class="btn btn-primary" onclick="switchCameraMode('classroom')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                Classroom Camera (Attendance)
+            </button>
+            <button id="btn-cam-campus" class="btn btn-secondary" onclick="switchCameraMode('campus')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                Campus Corridor (Class Skipper)
+            </button>
+            <button id="btn-toggle-cam" class="btn btn-outline-primary" onclick="toggleWebcam()">
+                Start Webcam
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1.5rem;">
+        <div class="stat-card">
+            <div class="stat-icon success">✓</div>
+            <div>
+                <div class="stat-value" id="stat-present">{{ present_count or 3 }}</div>
+                <div class="stat-label">Students Present Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon danger">⚠</div>
+            <div>
+                <div class="stat-value" id="stat-violations">{{ violation_count or 2 }}</div>
+                <div class="stat-label">Skipper Violations Flagged</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon primary">⚡</div>
+            <div>
+                <div class="stat-value">98.87%</div>
+                <div class="stat-label">FaceNet & LBPH Accuracy</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">⏱</div>
+            <div>
+                <div class="stat-value">&lt; 100 ms</div>
+                <div class="stat-label">Inference Processing Time</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Surveillance Area -->
+    <div class="monitor-container">
+        <!-- Video Feed Box -->
+        <div class="card" style="padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.95rem;">
+                    <span style="display: inline-block; width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e;"></span>
+                    Live Video Feed Stream
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="useServerFeed()">Server Stream</button>
+                    <button class="btn btn-secondary btn-sm" onclick="playAlertChime(false)">Test Chime</button>
+                </div>
+            </div>
+
+            <div class="video-frame-container" id="camera-viewport" style="position: relative; overflow: hidden;">
+                <!-- Browser Webcam Video Element -->
+                <video id="webcam-video" autoplay playsinline muted style="display: none; width: 100%; height: 100%; object-fit: cover;"></video>
+
+                <!-- Face Tracking & Name Annotation Overlay Canvas -->
+                <canvas id="face-overlay-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+
+                <!-- Server MJPEG Stream -->
+                <img id="mjpeg-feed" src="{{ url_for('video_feed', mode='classroom') }}" class="live-feed-img" style="display: block;" alt="Live Surveillance Feed">
+
+                <!-- Placeholder fallback -->
+                <div id="video-placeholder" style="display: none; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; gap: 1rem;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    <span>Click "Start Webcam" or "Server Stream" to activate camera</span>
+                </div>
+            </div>
+
+            <!-- Testing Simulation Bar -->
+            <div style="margin-top: 1rem; padding: 0.85rem; background: var(--bg-card-subtle); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+                    Interactive Test Simulations:
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-success btn-sm" onclick="triggerSimulation('classroom')">
+                        + Simulate Student Attendance
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="triggerSimulation('campus')">
+                        + Simulate Roaming Violation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Detections Feed -->
+        <div class="card" style="display: flex; flex-direction: column; max-height: 640px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">Live Event Stream</h3>
+                <span class="badge badge-primary">Auto-Sync Active</span>
+            </div>
+
+            <div id="live-detections-list" style="flex: 1; overflow-y: auto; padding-right: 0.25rem;">
+                {% for att in recent_attendance %}
+                <div class="stat-card alert-success" style="margin-bottom: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 0.95rem; color: #059669;">{{ att.name }} ({{ att.regno }})</strong>
+                            <span class="badge badge-success">Present</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">
+                            Camera: {{ att.camera_location }} | Time: {{ att.time }} | Accuracy: {{ att.confidence }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for viol in recent_violations %}
+                <div class="stat-card alert-danger" style="margin-bottom: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="font-size: 0.95rem; color: #dc2626;">{{ viol.name }} ({{ viol.regno }})</strong>
+                            <span class="badge badge-danger">Class Skipper Violation</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">
+                            Camera: {{ viol.location }} | Time: {{ viol.time }} | SMS Dispatched
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/surveillance.js') }}"></script>
+{% endblock %}

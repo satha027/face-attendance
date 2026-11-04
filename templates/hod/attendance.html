@@ -1,0 +1,72 @@
+{% extends 'hod/layout.html' %}
+
+{% block title %}Department Attendance - HoD Portal{% endblock %}
+
+{% block hod_content %}
+<div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">{{ hod_info.dept }} Attendance Verification</h1>
+            <p class="page-subtitle">Track student attendance across semesters for your department.</p>
+        </div>
+        <a href="{{ url_for('hod_export_attendance') }}" class="btn btn-primary">
+            📊 Download Attendance Excel
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+        <form method="GET" action="{{ url_for('hod_attendance') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 180px;">
+                <label class="form-label">Semester</label>
+                <select name="sem" class="form-control">
+                    <option value="All">All Semesters</option>
+                    {% for s in semesters %}
+                        <option value="{{ s.sem_name }}" {% if selected_sem == s.sem_name %}selected{% endif %}>{{ s.sem_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="flex: 1; min-width: 180px;">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Filter Records</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Semester</th>
+                        <th>Timestamp</th>
+                        <th>Camera Source</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attendance_records %}
+                    <tr>
+                        <td><strong>{{ att.regno }}</strong></td>
+                        <td>{{ att.name }}</td>
+                        <td>{{ att.sem }}</td>
+                        <td>{{ att.date }} at {{ att.time }}</td>
+                        <td><code>{{ att.camera_location }}</code></td>
+                        <td><span class="badge badge-primary">{{ att.confidence }}%</span></td>
+                        <td><span class="badge badge-success">{{ att.status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">No attendance records found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Class Skipper Portal{% endblock %}
+
+{% block content %}
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1.5rem;">
+    <div class="card" style="width: 100%; max-width: 440px; box-shadow: var(--shadow-xl); border-radius: var(--radius-lg); padding: 2.25rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin: 0 auto 1rem; width: 48px; height: 48px; font-size: 1.35rem;">CS</div>
+            <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">
+                {{ role_title }} Login
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.35rem;">
+                Enter your credentials to access the {{ role_title }} Portal
+            </p>
+        </div>
+
+        <!-- Role Selector Tabs -->
+        <div style="display: flex; background: var(--bg-card-subtle); padding: 0.35rem; border-radius: var(--radius-sm); margin-bottom: 1.75rem;">
+            <a href="{{ url_for('login_view', role='admin') }}" 
+               class="btn btn-sm" 
+               style="flex: 1; {{ 'background: #ffffff; color: var(--primary); box-shadow: var(--shadow-sm);' if current_role == 'admin' else 'background: transparent; color: var(--text-muted); border: none;' }}">
+                Admin
+            </a>
+            <a href="{{ url_for('login_view', role='staff') }}" 
+               class="btn btn-sm" 
+               style="flex: 1; {{ 'background: #ffffff; color: var(--primary); box-shadow: var(--shadow-sm);' if current_role == 'staff' else 'background: transparent; color: var(--text-muted); border: none;' }}">
+                Staff
+            </a>
+            <a href="{{ url_for('login_view', role='hod') }}" 
+               class="btn btn-sm" 
+               style="flex: 1; {{ 'background: #ffffff; color: var(--primary); box-shadow: var(--shadow-sm);' if current_role == 'hod' else 'background: transparent; color: var(--text-muted); border: none;' }}">
+                HOD
+            </a>
+        </div>
+
+        <form method="POST" action="{{ url_for('login_submit') }}">
+            <input type="hidden" name="role" value="{{ current_role }}">
+
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter username" required value="{{ default_user or '' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter password" required value="{{ default_pass or '' }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.95rem; margin-top: 0.5rem;">
+                Sign In to {{ role_title }} &rarr;
+            </button>
+        </form>
+
+        <!-- Quick Demo Credentials Box -->
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--primary-light); border-radius: var(--radius-sm); border: 1px dashed var(--primary-border);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; text-transform: uppercase;">
+                Quick Demo Credentials
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-main); display: flex; justify-content: space-between;">
+                <span>Username: <strong>{{ default_user }}</strong></span>
+                <span>Password: <strong>{{ default_pass }}</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
